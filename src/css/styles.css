@@ -78,7 +78,7 @@
 .load-btn {
   font-family: Montserrat;
   height: 40px;
-  display: inline-flex;
+  display: none;
   padding: 8px 16px;
   justify-content: center;
   align-items: center;
