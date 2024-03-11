@@ -1,8 +1,15 @@
+'use strict';
+
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
-import { renderMarkup } from './js/render-functions.js';
-import { fetchImages } from './js/pixabay-api.js';
+import {
+  renderMarkup,
+  showEnd,
+  emptyInput,
+  noImagesMessage,
+} from './js/render-functions';
+import { fetchImages } from './js/pixabay-api';
 
 const lightbox = new SimpleLightbox('.gallery a', {
   nav: true,
@@ -13,48 +20,71 @@ const lightbox = new SimpleLightbox('.gallery a', {
 
 const form = document.querySelector('.search-form');
 const container = document.querySelector('.gallery');
+const loader = document.querySelector('.loader');
+const loadMoreBtn = document.querySelector('.load-btn');
 let searchWord = '';
+let currentPage;
 
 form.addEventListener('submit', onSubmit);
+loadMoreBtn.addEventListener('click', onLoadMore);
 
-function onSubmit(event) {
+async function onSubmit(event) {
   event.preventDefault();
 
+  currentPage = 1;
   container.innerHTML = '';
   searchWord = form.elements.searchWord.value.trim();
+  loadMoreBtn.style.display = 'block';
 
-  fetchImages(searchWord)
-    .then(data => {
+  if (searchWord === '') {
+    emptyInput();
+    container.innerHTML = '';
+    loadMoreBtn.style.display = 'none';
+    form.reset();
+    return;
+  }
+  loader.style.display = 'block';
+
+  try {
+    const images = await fetchImages(searchWord, currentPage).then(data => {
       const markup = renderMarkup(data);
+      if (data.hits.length === 0) {
+        noImagesMessage();
+        loadMoreBtn.style.display = 'none';
+        loader.style.display = 'none';
+        return;
+      }
       container.insertAdjacentHTML('beforeend', markup);
-
       lightbox.refresh();
-    })
-    .catch(error => {
-      console.error('Error:', error);
+      loader.style.display = 'none';
     });
+  } catch (error) {
+    console.error('Error:', error);
+  }
   form.reset();
 }
 
-//
-//
+async function onLoadMore() {
+  currentPage += 1;
+  try {
+    const images = await fetchImages(searchWord, currentPage).then(data => {
+      const markup = renderMarkup(data);
+      container.insertAdjacentHTML('beforeend', markup);
+      lightbox.refresh();
 
-// import { getImages } from './js/pixabay-api';
-// import { countPages } from './js/pixabay-api';
-// import { resetCountPages } from './js/pixabay-api';
-// const fetchUsersBtn = document.querySelector('button[data-start]');
-// const input = document.querySelector('#data-search');
-// const btnLoadMore = document.querySelector('button[data-loadmore]');
-// let globalNameImage;
-// fetchUsersBtn.addEventListener('click', () => {
-//   const nameImage = input.value.trim();
-//   resetCountPages();
-//   if (nameImage !== '') {
-//     getImages(nameImage.trim());
-//     globalNameImage = nameImage;
-//   }
-// });
-// btnLoadMore.addEventListener('click', () => {
-//   countPages();
-//   getImages(globalNameImage);
-// });
+      const cardHeight = container.getBoundingClientRect().height;
+      window.scrollBy({
+        top: 2 * cardHeight,
+        behavior: 'smooth',
+      });
+
+      if (data.hits.length <= 14) {
+        loadMoreBtn.style.display = 'none';
+        showEnd();
+        lightbox.refresh();
+      }
+    });
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
