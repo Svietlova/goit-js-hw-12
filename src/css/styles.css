@@ -75,6 +75,21 @@
   background: #6C8CFF;
 }
 
+.load-btn {
+  font-family: Montserrat;
+  height: 40px;
+  display: none;
+  padding: 8px 16px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  background: #4e75ff;
+  color: #ffffff;
+  border: none;
+  margin-left: calc((1158px - 110px) / 2);
+  margin-top: 16px;
+}
+
 .gallery {
   width: 1158px;
   display: flex;
@@ -108,7 +123,6 @@
 
 .gallery-item-info-par {
   text-align: center;
-
 }
 
 .gallery-item-info-span {
