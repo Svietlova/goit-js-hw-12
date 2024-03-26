@@ -78,7 +78,7 @@ async function onLoadMore() {
         behavior: 'smooth',
       });
 
-      if (data.hits.length <= 14) {
+      if (data.hits.length < 15) {
         loadMoreBtn.style.display = 'none';
         showEnd();
         lightbox.refresh();
